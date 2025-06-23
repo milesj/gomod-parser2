@@ -76,3 +76,14 @@ fn test_parse_godebug() {
         ])
     );
 }
+
+#[test]
+fn test_carriage_return() {
+    let file_content = get_test_file_content("compress.mod")
+        .replace("\r", "") // Replace any current CR
+        .replace("\n", "\r\n"); // Replace LF with CRLF
+
+    let gomod = file_content.parse::<GoMod>().unwrap();
+
+    assert_eq!(gomod.module, "github.com/klauspost/compress".to_string());
+}
