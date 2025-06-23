@@ -87,8 +87,8 @@ fn godebug_single(input: &mut &str) -> Result<Vec<(String, String)>> {
     peek(not(')')).parse_next(input)?;
 
     let (key, _, value) = (
-        take_till(1.., |ch| ch == '='),
-        take_while(1.., |ch| ch == '='),
+        take_till(1.., '='),
+        take_while(1.., '='),
         take_till(1.., WHITESPACES),
     )
         .parse_next(input)?;
