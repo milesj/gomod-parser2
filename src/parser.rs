@@ -1,5 +1,6 @@
 use crate::combinator::not_whitespace;
 use crate::{Module, ModuleDependency, ModuleReplacement, ModuleRetract, Replacement};
+use std::collections::HashMap;
 use winnow::ascii::{multispace0, multispace1, space0, space1};
 use winnow::combinator::{fail, not, opt, peek, preceded, repeat, terminated};
 use winnow::stream::AsChar;
@@ -13,6 +14,7 @@ pub(crate) enum Directive<'a> {
     Comment(&'a str),
     Module(&'a str),
     Go(&'a str),
+    GoDebug(HashMap<String, String>),
     Toolchain(&'a str),
     Require(Vec<ModuleDependency>),
     Exclude(Vec<ModuleDependency>),
@@ -30,6 +32,7 @@ fn directive<'a>(input: &mut &'a str) -> Result<Directive<'a>> {
         "//" => comment,
         "module" => module,
         "go" => go,
+        "godebug" => godebug,
         "toolchain" => toolchain,
         "require" => require,
         "exclude" => exclude,
@@ -63,6 +66,43 @@ fn go<'a>(input: &mut &'a str) -> Result<Directive<'a>> {
     let _ = take_while(1.., AsChar::is_newline).parse_next(input)?;
 
     Ok(Directive::Go(res))
+}
+
+fn godebug<'a>(input: &mut &'a str) -> Result<Directive<'a>> {
+    let res = preceded(
+        ("godebug", space1),
+        dispatch! {peek(any);
+            '(' => godebug_multi,
+            _ => godebug_single,
+        },
+    )
+    .parse_next(input)?;
+    let _ = take_while(0.., AsChar::is_newline).parse_next(input)?;
+
+    Ok(Directive::GoDebug(HashMap::from_iter(res)))
+}
+
+fn godebug_single(input: &mut &str) -> Result<Vec<(String, String)>> {
+    // terminate, if `)` is found
+    peek(not(')')).parse_next(input)?;
+
+    let (key, _, value) = (
+        take_till(1.., |ch| ch == '='),
+        take_while(1.., |ch| ch == '='),
+        take_till(1.., WHITESPACES),
+    )
+        .parse_next(input)?;
+
+    Ok(vec![(key.into(), value.into())])
+}
+
+fn godebug_multi(input: &mut &str) -> Result<Vec<(String, String)>> {
+    let _ = ("(", multispace1).parse_next(input)?;
+    let res: Vec<Vec<(String, String)>> =
+        repeat(1.., terminated(godebug_single, multispace0)).parse_next(input)?;
+    let _ = (")", multispace0).parse_next(input)?;
+
+    Ok(res.into_iter().flatten().collect::<Vec<(String, String)>>())
 }
 
 fn toolchain<'a>(input: &mut &'a str) -> Result<Directive<'a>> {

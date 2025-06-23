@@ -35,6 +35,7 @@
 #![warn(clippy::cargo)]
 
 use crate::parser::{gomod, Directive};
+use std::collections::HashMap;
 use winnow::Parser;
 
 mod combinator;
@@ -45,6 +46,7 @@ pub struct GoMod {
     pub comment: Vec<String>,
     pub module: String,
     pub go: Option<String>,
+    pub godebug: HashMap<String, String>,
     pub toolchain: Option<String>,
     pub require: Vec<ModuleDependency>,
     pub exclude: Vec<ModuleDependency>,
@@ -63,6 +65,7 @@ impl std::str::FromStr for GoMod {
                 Directive::Comment(d) => res.comment.push((**d).to_string()),
                 Directive::Module(d) => res.module = (**d).to_string(),
                 Directive::Go(d) => res.go = Some((**d).to_string()),
+                Directive::GoDebug(d) => res.godebug.extend((*d).clone()),
                 Directive::Toolchain(d) => res.toolchain = Some((**d).to_string()),
                 Directive::Require(d) => res.require.append(d),
                 Directive::Exclude(d) => res.exclude.append(d),
