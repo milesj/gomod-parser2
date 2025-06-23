@@ -16,6 +16,7 @@ pub(crate) enum Directive<'a> {
     Module(&'a str),
     Go(&'a str),
     GoDebug(HashMap<String, String>),
+    Tool(Vec<String>),
     Toolchain(&'a str),
     Require(Vec<ModuleDependency>),
     Exclude(Vec<ModuleDependency>),
@@ -34,6 +35,7 @@ fn directive<'a>(input: &mut &'a str) -> Result<Directive<'a>> {
         "module" => module,
         "go" => go,
         "godebug" => godebug,
+        "tool" => tool,
         "toolchain" => toolchain,
         "require" => require,
         "exclude" => exclude,
@@ -101,6 +103,13 @@ fn godebug_multi(input: &mut &str) -> Result<Vec<(String, String)>> {
     let _ = (")", multispace0).parse_next(input)?;
 
     Ok(res.into_iter().flatten().collect::<Vec<(String, String)>>())
+}
+
+fn tool<'a>(input: &mut &'a str) -> Result<Directive<'a>> {
+    let res = preceded(("tool", space1), take_till(1.., NEWLINE)).parse_next(input)?;
+    let _ = take_while(1.., NEWLINE).parse_next(input)?;
+
+    Ok(Directive::Tool(vec![res.to_owned()]))
 }
 
 fn toolchain<'a>(input: &mut &'a str) -> Result<Directive<'a>> {

@@ -78,6 +78,20 @@ fn test_parse_godebug() {
 }
 
 #[test]
+fn test_parse_tool() {
+    let file_content = get_test_file_content("tool.mod");
+    let gomod = file_content.parse::<GoMod>().unwrap();
+
+    assert_eq!(
+        gomod.tool,
+        vec![
+            "example.com/mymodule/cmd/mytool1",
+            "example.com/mymodule/cmd/mytool2"
+        ]
+    );
+}
+
+#[test]
 fn test_carriage_return() {
     let file_content = get_test_file_content("compress.mod")
         .replace("\r", "") // Replace any current CR
