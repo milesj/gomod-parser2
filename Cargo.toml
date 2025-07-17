@@ -1,8 +1,8 @@
 [package]
-name = "gomod-parser"
-version = "0.3.1"
+name = "gomod-parser2"
+version = "0.4.0"
 edition = "2021"
-rust-version = "1.65" # MSRV
+rust-version = "1.65"  # MSRV
 
 description = "Simple go.mod parser"
 keywords = ["gomod"]

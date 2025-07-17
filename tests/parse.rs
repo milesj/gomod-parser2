@@ -1,4 +1,4 @@
-use gomod_parser::GoMod;
+use gomod_parser2::GoMod;
 use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::path::PathBuf;
