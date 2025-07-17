@@ -101,3 +101,13 @@ fn test_carriage_return() {
 
     assert_eq!(gomod.module, "github.com/klauspost/compress".to_string());
 }
+
+#[test]
+fn test_no_trailing_newline() {
+    let file_content = get_test_file_content("trailing.mod");
+
+    let gomod = file_content.trim().parse::<GoMod>().unwrap();
+
+    assert_eq!(gomod.module, "myco/mymodule".to_string());
+    assert_eq!(gomod.go.unwrap(), "1.24.1".to_string());
+}
